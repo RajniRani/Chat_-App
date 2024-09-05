@@ -1,0 +1,23 @@
+<!-- views/form.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Your Name</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center h-screen bg-gray-100">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-4">
+        <h2 class="text-2xl font-semibold text-center mb-4">Enter Your Name</h2>
+        <form action="/chat" method="get" id="name-form">
+            <input type="text" name="name" id="name-input" autocomplete="off" placeholder="Enter your name" required
+                class="flex-1 p-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <button type="submit"
+                class="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none">
+                Join Chat
+            </button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col justify-center items-center h-screen">
+    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-4">
+        <!-- Navigation Section -->
+        <div class="flex justify-between items-center mb-2 relative">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-500">Chat App</h1>
+                <div id="typing-indicator" class="absolute top-8 left-0 text-gray-500 italic hidden"></div>
+            </div>
+            <div id="user-count" class="bg-blue-500 text-white px-4 py-1 rounded">
+                Users: 0
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-gray-300 mb-4 mt-6">
+        <!-- Chat Box -->
+        <div id="chat-box" class="h-72 p-4 overflow-y-auto rounded-md mb-4">
+            <!-- Messages will appear here -->
+        </div>
+
+        <!-- Message Form -->
+        <form id="message-form" class="flex">
+            <input type="text" id="message-input" autocomplete="off" placeholder="Type your message here..." required
+                class="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" id="send-btn"
+                class="ml-2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none">
+                Send
+            </button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const chatBox = document.getElementById('chat-box');
+        const userCountDiv = document.getElementById('user-count');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        const userName = "<%= userName %>"; // Get the user's name from the server
+
+        let typingTimeout;
+
+        messageInput.addEventListener('input', function() {
+            socket.emit('typing', { userName, isTyping: true });
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('typing', { userName, isTyping: false });
+            }, 1000); 
+        });
+
+        messageForm.addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            const message = messageInput.value; 
+            appendMessage(`${userName}: ${message}`, 'outgoing'); 
+            socket.emit('send-message', { userName, message });
+            messageInput.value = ''; 
+        });
+
+        function appendMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', type === 'outgoing' ? 'justify-end' : 'justify-start');
+            messageDiv.innerHTML = `<div class="bg-${type === 'outgoing' ? 'blue' : 'gray'}-500 p-2 max-w-fit rounded-lg text-white mb-2">${message}</div>`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        socket.on('receive-message', function(data) {
+            appendMessage(`${data.userName}: ${data.message}`, 'incoming');
+        });
+
+        socket.on('user-update', function(data) {
+            userCountDiv.textContent = `Users: ${data.count}`;
+        });
+
+        socket.on('typing', function(data) {
+            typingIndicator.textContent = data.isTyping ? `${data.userName} is typing...` : '';
+            typingIndicator.classList.toggle('hidden', !data.isTyping);
+        });
+    </script>
+</body>
+</html>
